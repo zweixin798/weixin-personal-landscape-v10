@@ -13,7 +13,7 @@
   document.body.append(controls);
   const previous=controls.querySelector('.previous-scene');const next=controls.querySelector('.next-scene');
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
-  let current=0,lockedUntil=0,gestureLast=0,gestureSum=0,gestureUsed=false,touch=null;
+  let current=0,lockedUntil=0,gestureLast=0,gestureSum=0,gestureUsed=false,readingGesture=false,touch=null;
   const findScene=hash=>scenes.findIndex(scene=>`#${scene.id}`===hash);
   function go(index,{historyMode='push',focus=false,animate=true}={}){
     index=Math.max(0,Math.min(scenes.length-1,index));
@@ -25,6 +25,7 @@
       if(i===current){scene.querySelectorAll('.visual-reveal').forEach(el=>el.classList.add('is-visible'));}
     });
     if(old!==index){scenes[index].querySelector('.scene-scroll').scrollTop=0;lockedUntil=performance.now()+(motion.matches?120:650);}
+    document.dispatchEvent(new CustomEvent('scenechange',{detail:{id:scenes[index].id}}));
     const hash=`#${scenes[index].id}`;
     if(historyMode==='push'&&location.hash!==hash)history.pushState(null,'',hash);
     if(historyMode==='replace')history.replaceState(null,'',hash);
@@ -35,7 +36,7 @@
   const scrollArea=()=>scenes[current].querySelector('.scene-scroll');
   function canScroll(direction){const el=scrollArea();return direction>0?el.scrollTop+el.clientHeight<el.scrollHeight-3:el.scrollTop>3;}
   function isInteractive(el){return el.closest('input,textarea,select,[contenteditable="true"],dialog');}
-  function modalOpen(){return Boolean(document.querySelector('dialog[open]'));}
+  function modalOpen(){return Boolean(document.querySelector('dialog[open],.room-overlay:not([hidden])'))||document.body.classList.contains('room-exploring');}
   previous.addEventListener('click',()=>go(current-1,{focus:true}));next.addEventListener('click',()=>go(current+1,{focus:true}));
   document.addEventListener('click',event=>{
     const link=event.target.closest('a[href^="#"]');if(!link)return;
@@ -46,10 +47,12 @@
   addEventListener('hashchange',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true});});
   main.addEventListener('wheel',event=>{
     if(event.ctrlKey||modalOpen()||isInteractive(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
-    const now=performance.now();if(now-gestureLast>180){gestureUsed=false;gestureSum=0;}gestureLast=now;
+    const now=performance.now();if(now-gestureLast>180){gestureUsed=false;readingGesture=false;gestureSum=0;}gestureLast=now;
     const direction=Math.sign(event.deltaY);if(!direction)return;
     if(gestureUsed||now<lockedUntil){event.preventDefault();return;}
-    if(canScroll(direction)){gestureSum=0;return;}
+    if(canScroll(direction)){gestureSum=0;readingGesture=true;return;}
+    if(readingGesture){event.preventDefault();return;}
+    // A new wheel gesture is required after reaching the end of inner content.
     event.preventDefault();const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1);
     if(Math.sign(gestureSum)!==direction)gestureSum=0;gestureSum+=delta;
     if(Math.abs(gestureSum)>=45){gestureUsed=true;go(current+direction);}

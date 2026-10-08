@@ -1,0 +1,22 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Private Room Regression Checks</title></head><body><h1>Private Room Regression Checks</h1><p>Development-only checks; this file is excluded from the published build.</p><ol id="results"></ol><div id="fixture" style="width:640px;height:420px"></div><script src="../content.js"></script><script type="module">
+import {createRoom} from '../room-3d.js';
+const results=document.querySelector('#results');let failures=0;
+const report=(ok,text)=>{const li=document.createElement('li');li.textContent=(ok?'PASS: ':'FAIL: ')+text;results.append(li);if(!ok)failures++;};
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+let failureCalled=false;
+try{
+ const room=createRoom({container:document.querySelector('#fixture'),books:window.SITE_CONTENT.books,photos:[],reduced:true,onSelect:()=>{},onHover:()=>{},onFailure:()=>{failureCalled=true;}});
+ room.setActive(true);await wait(100);
+ const start=performance.now();await room.focus({type:'book',id:'moby-dick'});
+ report(performance.now()-start<500,'Reduced motion completes selection without the 1.6-second camera flight');
+ await room.reset();room.setActive(false);const frames=room.getDiagnostics().frames;await wait(160);
+ report(room.getDiagnostics().frames===frames,'No render frames while the room is inactive');
+ const inactiveStart=performance.now();await room.reset();report(performance.now()-inactiveStart<100,'Closing an inactive room resolves immediately');
+ room.setActive(true);room.setReduced(false);
+ const focus=room.focus({type:'book',id:'ulysses'});room.setReduced(true);const closing=room.reset();report(await focus===false&&await closing===true,'Interrupted book selection cancels cleanly and returns to the room');
+ const gl=document.querySelector('canvas').getContext('webgl2');const lose=gl.getExtension('WEBGL_lose_context');
+ if(lose){lose.loseContext();await wait(100);report(failureCalled,'WebGL context loss notifies the HTML fallback');}else report(false,'Context-loss extension is unavailable in this browser');
+ room.dispose();report(!document.querySelector('#fixture canvas'),'Disposal releases the renderer canvas');
+}catch(error){report(false,error.message)}
+document.body.dataset.result=failures?'failed':'passed';document.title=failures?'FAIL — Room checks':'PASS — Room checks';
+</script></body></html>

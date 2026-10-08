@@ -1,1 +1,20 @@
-{"name":"weixin-personal-landscape","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node scripts/serve.mjs","build":"node scripts/build.mjs","check":"node scripts/check.mjs"},"engines":{"node":">=20"}}
+{
+  "name": "weixin-personal-landscape",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "vendor": "node scripts/vendor.mjs",
+    "predev": "npm run vendor",
+    "prebuild": "npm run vendor"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  }
+}
