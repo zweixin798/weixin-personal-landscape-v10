@@ -15,13 +15,14 @@ section.append(overlay);
 const panel=overlay.querySelector('.room-panel-content');
 const returning=document.createElement('button');returning.className='room-return';returning.textContent='返回房间 ×';returning.hidden=true;section.append(returning);
 let engine=null,loading=null,failed=false,sequence=0,lastTrigger=null,locked=[],currentAction=null;
+let wasRoomActive=false,entryTicket=0,entryFrameA=0,entryFrameB=0;
 function inRoom(){return !document.documentElement.classList.contains('scene-mode')||section.classList.contains('is-current');}
 function setLocked(value){
   if(value&&!document.body.classList.contains('room-exploring')){locked=[section.querySelector('.scene-scroll'),document.querySelector('.site-header'),document.querySelector('.scene-controls')].filter(Boolean).map(el=>({el,inert:el.inert}));locked.forEach(({el})=>el.inert=true);document.body.classList.add('room-exploring');}
   if(!value){locked.forEach(({el,inert})=>el.inert=inert);locked=[];document.body.classList.remove('room-exploring');}
 }
 function showPanel(action){
-  currentAction=action;overlay.className='room-overlay panel-'+action.type;
+  currentAction=action;engine?.setReading(action.type==='book');overlay.className='room-overlay panel-'+action.type;
   if(action.type==='books'){
     panel.innerHTML='<h2 id="room-panel-title">On my bookshelf.</h2><div class="shelf-browser">'+books.map(b=>`<button class="shelf-book" data-book-id="${esc(b.id)}" style="--book-color:${esc(b.color)}" aria-label="打开 ${esc(b.title)}"><small>${esc(b.category)}</small><strong>${esc(b.title)}</strong><span>${esc(b.author)}</span></button>`).join('')+'</div>';
   }else if(action.type==='book'){
@@ -44,6 +45,7 @@ function showPanel(action){
 }
 async function explore(action,trigger){
   const ticket=++sequence;
+  settleEntry();
   if(!document.body.classList.contains('room-exploring'))lastTrigger=trigger||stage.querySelector(`[data-room-action="${action.type==='book'?'books':action.type==='photo'?'album':action.type}"]`);
   setLocked(true);overlay.hidden=true;returning.hidden=false;returning.focus({preventScroll:true});stage.classList.add('room-focused');stage.dataset.interaction='focusing';label.hidden=true;
   if(engine&&desktop.matches&&inRoom())await engine.focus(action);
@@ -68,17 +70,47 @@ document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}
   if(event.key==='Tab'){const scope=overlay.hidden?returning:overlay;const items=scope===returning?[returning]:[...scope.querySelectorAll('button:not(:disabled),a[href],[tabindex="0"]')].filter(e=>!e.hidden);if(!items.length)return;const first=items[0],last=items.at(-1);if(event.shiftKey&&(document.activeElement===first||!scope.contains(document.activeElement))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||!scope.contains(document.activeElement))){event.preventDefault();first.focus();}}
 },true);
-function fallback(message){failed=true;engine?.setActive(false);stage.classList.remove('has-webgl');stage.dataset.renderMode='fallback';status.textContent=message;}
+function fallback(message){settleEntry();failed=true;engine?.setActive(false);stage.classList.remove('has-webgl');stage.dataset.renderMode='fallback';status.textContent=message;}
 async function loadRoom(){
   if(loading||engine||failed||!desktop.matches||!inRoom())return;
   stage.dataset.renderMode='loading';status.textContent='正在准备私人空间…';
   loading=import('./room-3d.js').then(({createRoom})=>{
     engine=createRoom({container,books,photos,reduced:reduced.matches,onSelect:action=>explore(action),onHover:hover=>{if(!hover){label.hidden=true;return;}label.textContent=hover.text;label.hidden=false;label.style.left=Math.max(10,Math.min(container.clientWidth-240,hover.x+16))+'px';label.style.top=Math.max(10,hover.y-42)+'px';},onFailure:fallback});
-    engine.setActive(inRoom()&&desktop.matches);stage.classList.add('has-webgl');stage.dataset.renderMode='webgl';stage.dataset.interaction='idle';status.textContent='';
+    if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))engine.prepareEntry();
+    engine.setActive(inRoom()&&desktop.matches);stage.classList.add('has-webgl');stage.dataset.renderMode='webgl';stage.dataset.interaction='idle';status.textContent='';if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))beginEntry();
   }).catch(error=>{console.warn('Private room fallback:',error.message);fallback('3D 暂时不可用；下方物件入口仍可正常阅读。');});
   await loading;
 }
-function updateActive(){const active=inRoom()&&desktop.matches;engine?.setActive(active);if(!inRoom()&&document.body.classList.contains('room-exploring'))close();if(!desktop.matches){stage.classList.remove('has-webgl');stage.dataset.renderMode='mobile';}else if(engine&&!failed)stage.classList.add('has-webgl');else loadRoom();}
-document.addEventListener('scenechange',updateActive);desktop.addEventListener('change',updateActive);reduced.addEventListener('change',()=>engine?.setReduced(reduced.matches));
+function settleEntry(){
+  entryTicket++;cancelAnimationFrame(entryFrameA);cancelAnimationFrame(entryFrameB);engine?.finishEntry();
+  section.classList.remove('room-entering','room-entered','room-entry-reset');stage.dataset.entry='settled';
+}
+function prepareEntry(){
+  settleEntry();
+  if(!reduced.matches&&desktop.matches&&!failed){section.classList.add('room-entry-reset','room-entering');stage.dataset.entry='pending';engine?.prepareEntry();}
+}
+function beginEntry(){
+  if(reduced.matches||!desktop.matches||!inRoom()||document.body.classList.contains('room-exploring')){settleEntry();return;}
+  const ticket=++entryTicket;
+  // Two frames establish the card before starting its single coordinated expansion.
+  entryFrameA=requestAnimationFrame(()=>{entryFrameB=requestAnimationFrame(async()=>{
+    if(ticket!==entryTicket||!inRoom())return;
+    section.classList.remove('room-entry-reset');section.classList.add('room-entering','room-entered');stage.dataset.entry='expanding';
+    await engine?.enter();
+    if(ticket===entryTicket){stage.dataset.entry='settled';section.classList.remove('room-entering');engine?.resize();}
+  });});
+}
+function updateActive(){
+  const active=inRoom()&&desktop.matches;
+  engine?.setActive(active);
+  if(!inRoom()&&document.body.classList.contains('room-exploring'))close();
+  if(!active){settleEntry();if(!desktop.matches){stage.classList.remove('has-webgl');stage.dataset.renderMode='mobile';}}
+  else if(!wasRoomActive){
+    prepareEntry();
+    if(engine&&!failed){stage.classList.add('has-webgl');stage.dataset.renderMode='webgl';beginEntry();}else loadRoom();
+  }
+  wasRoomActive=active;
+}
+document.addEventListener('scenechange',updateActive);desktop.addEventListener('change',updateActive);reduced.addEventListener('change',()=>{engine?.setReduced(reduced.matches);if(reduced.matches)settleEntry();});
 if(!document.documentElement.classList.contains('scene-mode')){const io=new IntersectionObserver(entries=>{if(entries[0].isIntersecting)loadRoom();engine?.setActive(entries[0].isIntersecting&&desktop.matches);});io.observe(stage);}else updateActive();
 addEventListener('pagehide',()=>engine?.setActive(false));addEventListener('pageshow',updateActive);document.addEventListener('visibilitychange',()=>engine?.setActive(!document.hidden&&inRoom()&&desktop.matches));

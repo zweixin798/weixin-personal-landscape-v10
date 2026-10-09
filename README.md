@@ -1,10 +1,10 @@
 # Weixin Zhang — Personal Landscape
 
-A static personal portfolio with seven chapters, with one continuous internal experience path and a desktop 3D private room.
+A static personal portfolio with six chapters, with continuous Experience and Education sections and a full-bleed desktop 3D private room.
 
 ## Sections
 
-Introduction → Experience (DeepWisdom → Baidu → Feishu FDE in one section) → Her Rhythm → undergraduate research → graduate research → private space → ending.
+Introduction → Experience (DeepWisdom → Baidu → Feishu FDE in one section) → Her Rhythm → Education (Undergraduate → Question Shift → Graduate) → private space → ending.
 
 Company experience is concise and factual. Her Rhythm is the sole project. The private space contains books, photography, music, screen and notebook panels.
 
@@ -33,6 +33,7 @@ Set Settings → Pages → Source to GitHub Actions, then run the included Pages
 - `scenes.js` / `scenes.css`: viewport navigation, wheel/touch/keyboard handling and overflow reading.
 - `app.js`: portrait, contact links and the optional project URL.
 - `experience.js` / `experience.css`: shared growing path, internal scroll progress and two light keyword expansions.
+- `education.js` / `education.css`: the combined education chapter, Question Shift and scroll-drawn connecting paths.
 - `private-room.js` / `private-room.css`: accessible HTML reading layers, mobile fallback, gallery and focus management.
 - `room-3d.js`: lazily loaded room geometry, raycasting, lighting, book hinges and object/camera transitions.
 - `scripts/vendor.mjs`: copies the pinned Three.js modules and license into the build assets.
@@ -51,3 +52,9 @@ Desktop entry lazily loads the local 3D module. Leaving the scene, hiding the do
 Short book introductions were checked against the publisher/author and institutional sources stored in `content.js`. The UI never presents these descriptions as the owner's personal reading notes.
 
 Pushing to `main` runs the GitHub Pages workflow. The published site is updated only after the build and deployment jobs succeed.
+
+## Room arrival and internal education anchors
+
+The desktop room fills its scene below the global header and above the scene controls. Its title and dock float over the canvas. A coordinated 800 ms card expansion, mild forward dolly and exposure change replace the default vertical scene movement on entry. Reduced motion skips the expansion and dolly; leaving cancels pending entry work.
+
+`#undergraduate`, `#question-shift` and `#understanding` remain shareable internal anchors within the single `#education` scene. They do not create extra scenes. Experience illustrations are inline SVG, while the existing scroll controller and factual copy remain unchanged.

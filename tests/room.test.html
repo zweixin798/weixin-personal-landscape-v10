@@ -7,6 +7,7 @@ let failureCalled=false;
 try{
  const room=createRoom({container:document.querySelector('#fixture'),books:window.SITE_CONTENT.books,photos:[],reduced:true,onSelect:()=>{},onHover:()=>{},onFailure:()=>{failureCalled=true;}});
  room.setActive(true);await wait(100);
+ const entryStart=performance.now();await room.enter();report(performance.now()-entryStart<100,'Reduced motion skips the room-entry dolly');
  const start=performance.now();await room.focus({type:'book',id:'moby-dick'});
  report(performance.now()-start<500,'Reduced motion completes selection without the 1.6-second camera flight');
  await room.reset();room.setActive(false);const frames=room.getDiagnostics().frames;await wait(160);
@@ -14,6 +15,7 @@ try{
  const inactiveStart=performance.now();await room.reset();report(performance.now()-inactiveStart<100,'Closing an inactive room resolves immediately');
  room.setActive(true);room.setReduced(false);
  const focus=room.focus({type:'book',id:'ulysses'});room.setReduced(true);const closing=room.reset();report(await focus===false&&await closing===true,'Interrupted book selection cancels cleanly and returns to the room');
+ room.setReduced(false);room.prepareEntry();const arrival=room.enter();await wait(80);report(room.getDiagnostics().entering,'Room entry starts its coordinated dolly');room.setActive(false);report(await arrival===false&&!room.getDiagnostics().entering,'Leaving the room cancels entry without a lingering animation');room.setActive(true);room.setReduced(true);
  const gl=document.querySelector('canvas').getContext('webgl2');const lose=gl.getExtension('WEBGL_lose_context');
  if(lose){lose.loseContext();await wait(100);report(failureCalled,'WebGL context loss notifies the HTML fallback');}else report(false,'Context-loss extension is unavailable in this browser');
  room.dispose();report(!document.querySelector('#fixture canvas'),'Disposal releases the renderer canvas');

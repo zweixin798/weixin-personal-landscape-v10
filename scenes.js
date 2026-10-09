@@ -12,21 +12,30 @@
   controls.innerHTML='<span class="scene-instruction">滑动，进入下一幕</span><span class="scene-status" aria-live="polite" aria-atomic="true"></span><div><button class="previous-scene" aria-label="上一幕">↑</button><button class="next-scene" aria-label="下一幕">↓</button></div>';
   document.body.append(controls);
   const previous=controls.querySelector('.previous-scene');const next=controls.querySelector('.next-scene');
+  let roomArrivalTimer;
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   let current=0,lockedUntil=0,gestureLast=0,gestureSum=0,gestureUsed=false,readingGesture=false,touch=null;
-  const findScene=hash=>scenes.findIndex(scene=>`#${scene.id}`===hash);
-  function go(index,{historyMode='push',focus=false,animate=true}={}){
+  const findScene=hash=>{const target=document.getElementById(hash.replace(/^#/,''));return scenes.findIndex(scene=>scene===target||scene.contains(target));};
+  function go(index,{historyMode='push',focus=false,animate=true,anchor=null}={}){
     index=Math.max(0,Math.min(scenes.length-1,index));
-    const old=current;current=index;gestureSum=0;main.scrollTop=0;main.scrollLeft=0;
+    const old=current;
+    clearTimeout(roomArrivalTimer);
+    const roomArrival=scenes[index].id==='private'&&old!==index&&matchMedia('(min-width:760px)').matches;
+    main.classList.toggle('room-arrival',roomArrival);
+    if(roomArrival)roomArrivalTimer=setTimeout(()=>main.classList.remove('room-arrival'),900);
+    current=index;gestureSum=0;main.scrollTop=0;main.scrollLeft=0;
     main.classList.toggle('no-scene-motion',!animate||motion.matches);
     scenes.forEach((scene,i)=>{
       scene.style.setProperty('--scene-offset',String(i<current?-1:i>current?1:0));
       scene.classList.toggle('is-current',i===current);scene.inert=i!==current;scene.setAttribute('aria-hidden',String(i!==current));
       if(i===current){scene.querySelectorAll('.visual-reveal').forEach(el=>el.classList.add('is-visible'));}
     });
-    if(old!==index){scenes[index].querySelector('.scene-scroll').scrollTop=0;lockedUntil=performance.now()+(motion.matches?120:650);}
-    document.dispatchEvent(new CustomEvent('scenechange',{detail:{id:scenes[index].id}}));
-    const hash=`#${scenes[index].id}`;
+    if(old!==index){scenes[index].querySelector('.scene-scroll').scrollTop=0;lockedUntil=performance.now()+(motion.matches?120:roomArrival?900:650);}
+    const target=anchor?document.getElementById(anchor.replace(/^#/,'')):null;
+    const nested=target&&target!==scenes[index]&&scenes[index].contains(target);
+    if(nested){const scroll=scenes[index].querySelector('.scene-scroll');scroll.scrollTo({top:target.getBoundingClientRect().top-scroll.getBoundingClientRect().top+scroll.scrollTop-24,behavior:old===index&&animate&&!motion.matches?'smooth':'instant'});}
+    document.dispatchEvent(new CustomEvent('scenechange',{detail:{id:scenes[index].id,from:scenes[old].id,animate:animate&&!motion.matches}}));
+    const hash=nested?anchor:`#${scenes[index].id}`;
     if(historyMode==='push'&&location.hash!==hash)history.pushState(null,'',hash);
     if(historyMode==='replace')history.replaceState(null,'',hash);
     controls.querySelector('.scene-status').textContent=`${String(index+1).padStart(2,'0')} / ${String(scenes.length).padStart(2,'0')} — ${scenes[index].dataset.title}`;
@@ -41,10 +50,10 @@
   document.addEventListener('click',event=>{
     const link=event.target.closest('a[href^="#"]');if(!link)return;
     const hash=link.getAttribute('href');const index=hash==='#main'?current:findScene(hash);
-    if(index<0)return;event.preventDefault();go(index,{focus:true});
+    if(index<0)return;event.preventDefault();go(index,{focus:true,anchor:hash});
   });
-  addEventListener('popstate',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true});});
-  addEventListener('hashchange',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true});});
+  addEventListener('popstate',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true,anchor:location.hash});});
+  addEventListener('hashchange',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true,anchor:location.hash});});
   main.addEventListener('wheel',event=>{
     if(event.ctrlKey||modalOpen()||isInteractive(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
     const now=performance.now();if(now-gestureLast>180){gestureUsed=false;readingGesture=false;gestureSum=0;}gestureLast=now;
@@ -74,5 +83,5 @@
     if(canScroll(direction)){scrollArea().scrollBy({top:direction*scrollArea().clientHeight*.75,behavior:motion.matches?'instant':'smooth'});}else go(current+direction,{focus:true});
   });
   document.documentElement.classList.add('scene-mode');
-  go(Math.max(0,findScene(location.hash)),{historyMode:'replace',animate:false});
+  go(Math.max(0,findScene(location.hash)),{historyMode:'replace',animate:false,anchor:location.hash});
 })();

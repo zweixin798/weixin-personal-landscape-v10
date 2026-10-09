@@ -4,11 +4,11 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
-  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.setClearColor('#d9c6a7');renderer.clear();
   container.append(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
   const scene=new THREE.Scene();scene.background=new THREE.Color('#d9c6a7');scene.fog=new THREE.Fog('#d9c6a7',15,30);
-  const camera=new THREE.PerspectiveCamera(38,1,.1,60);
-  const homeCamera=new THREE.Vector3(7.3,5.3,9.2),homeLook=new THREE.Vector3(0,1.4,-.15);
+  const camera=new THREE.PerspectiveCamera(46,1,.1,60);
+  const homeCamera=new THREE.Vector3(.5,2.38,4.4),homeLook=new THREE.Vector3(0,1.50,-1.4);
   camera.position.copy(homeCamera);camera.lookAt(homeLook);
   const lights=new THREE.HemisphereLight('#fff3d4','#65503b',2);scene.add(lights);
   const sun=new THREE.DirectionalLight('#ffe7bc',3.1);sun.position.set(2.5,7,4);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-6;sun.shadow.camera.right=6;sun.shadow.camera.top=6;sun.shadow.camera.bottom=-6;sun.shadow.normalBias=.03;sun.shadow.bias=-.0003;scene.add(sun);
@@ -26,11 +26,11 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   function loadTexture(url){const t=loader.load(url,()=>invalidate());t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t;}
   function wrap(ctx,text,max){const words=/\s/.test(text)?text.split(' '):Array.from(text),lines=[];let line='';for(const word of words){const candidate=line+(line&&/\s/.test(text)?' ':'')+word;if(ctx.measureText(candidate).width>max&&line){lines.push(line);line=word;}else line=candidate;}if(line)lines.push(line);return lines;}
   function textTexture(book,spine=false){const canvas=document.createElement('canvas');canvas.width=spine?128:512;canvas.height=spine?768:720;const ctx=canvas.getContext('2d');ctx.fillStyle=book.color;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#eddfc4';ctx.textAlign='center';if(spine){ctx.translate(64,384);ctx.rotate(-Math.PI/2);ctx.font='29px Georgia,serif';const title=book.id==='llm-scratch'?'LLM / From Scratch':book.title;ctx.fillText(title,0,9,660);}else{ctx.strokeStyle='#eadabb80';ctx.lineWidth=2;ctx.strokeRect(32,32,448,656);ctx.font='22px Georgia,serif';ctx.fillText(book.category,256,100);ctx.font='42px Georgia,serif';wrap(ctx,book.title,390).slice(0,5).forEach((line,i)=>ctx.fillText(line,256,260+i*58));ctx.font='19px Georgia,serif';wrap(ctx,book.author,380).slice(0,3).forEach((line,i)=>ctx.fillText(line,256,585+i*29));}const t=new THREE.CanvasTexture(canvas);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t;}
-  function linedPage(){const c=document.createElement('canvas');c.width=256;c.height=384;const x=c.getContext('2d');x.fillStyle='#f2e7cc';x.fillRect(0,0,256,384);x.fillStyle='#cabfa6';for(let y=45;y<340;y+=16)x.fillRect(30,y,190,2);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t;}
+  function linedPage(){const c=document.createElement('canvas');c.width=256;c.height=384;const x=c.getContext('2d');x.fillStyle='#F6F3EA';x.fillRect(0,0,256,384);x.fillStyle='#c9c3b6';for(let y=45;y<340;y+=16)x.fillRect(30,y,190,2);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t;}
   const pageTexture=linedPage();
   function wallArt(){const c=document.createElement('canvas');c.width=256;c.height=320;const ctx=c.getContext('2d');ctx.fillStyle='#d8ddca';ctx.fillRect(0,0,256,320);ctx.fillStyle='#cb693f';ctx.beginPath();ctx.arc(182,80,40,0,Math.PI*2);ctx.fill();ctx.fillStyle='#849181';ctx.beginPath();ctx.moveTo(0,240);ctx.quadraticCurveTo(75,70,160,230);ctx.lineTo(256,190);ctx.lineTo(256,320);ctx.lineTo(0,320);ctx.fill();ctx.fillStyle='#815238';ctx.beginPath();ctx.moveTo(0,290);ctx.quadraticCurveTo(110,180,256,285);ctx.lineTo(256,320);ctx.lineTo(0,320);ctx.fill();const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;textures.push(t);return t;}
 
-  function bookModel(book,height=1){const g=new THREE.Group();const w=.68,h=height,d=.17;box(w-.025,h-.04,d, '#e4d8b9',g);box(w+.025,h+.02,.024,book.color,g,0,0,-d/2-.012);box(.034,h+.02,d+.04,book.color,g,-w/2,0,0);
+  function bookModel(book,height=1){const g=new THREE.Group();const w=.68,h=height,d=.17;box(w-.025,h-.04,d, '#e3dfd3',g);box(w+.025,h+.02,.024,book.color,g,0,0,-d/2-.012);box(.034,h+.02,d+.04,book.color,g,-w/2,0,0);
     const pivot=new THREE.Group();pivot.position.set(-w/2,0,d/2+.012);g.add(pivot);
     const coverMaterials=Array(6).fill(mat(book.color)).slice();coverMaterials[4]=new THREE.MeshStandardMaterial({map:textTexture(book),roughness:.8});coverMaterials[5]=new THREE.MeshStandardMaterial({map:pageTexture,roughness:.95});box(w+.025,h+.02,.024,coverMaterials,pivot,w/2,0,0);
     const spine=mesh(new THREE.PlaneGeometry(d,h-.08),new THREE.MeshStandardMaterial({map:textTexture(book,true),roughness:.8}),g);spine.rotation.y=-Math.PI/2;spine.position.x=-w/2-.02;
@@ -39,8 +39,8 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   // Room shell and warm, diffuse light. Geometry is local; no model downloads.
   box(8.3,.14,6.1,'#9d805f',scene,0,-.08,0);
   for(let i=0;i<17;i++)box(.47,.012,5.98,i%3===0?'#b09773':i%3===1?'#ad906b':'#b59b76',scene,-4+i*.5,.001,0);
-  box(8.3,4.4,.15,'#d8c9af',scene,0,2.15,-3.05);box(.15,4.4,6.1,'#c4b296',scene,-4.15,2.15,0);
-  box(8.2,.16,.11,'#866d51',scene,0,.13,-2.92);box(.11,.16,6,'#866d51',scene,-4.02,.13,0);
+  box(14,7,.15,'#d8c9af',scene,0,3.45,-3.05);box(.15,7,6.1,'#c4b296',scene,-4.15,3.45,0);
+  box(14,.16,.11,'#866d51',scene,0,.13,-2.92);box(.11,.16,6,'#866d51',scene,-4.02,.13,0);
   const rug=box(4.6,.017,2.65,'#9c9a78',scene,.1,.015,.9);for(let i=0;i<9;i++)box(4.42,.003,.045,'#cfc5a1',scene,.1,.026,-.22+i*.28);
   // Window and picture.
   box(2.1,2.1,.10,'#8b7355',scene,2.05,2.8,-2.92);box(1.92,1.91,.11,new THREE.MeshStandardMaterial({color:'#e6e2c1',emissive:'#e4d5a0',emissiveIntensity:.35,roughness:1}),scene,2.05,2.8,-2.85);box(.06,1.98,.15,'#9a896a',scene,2.05,2.8,-2.76);box(2,.06,.15,'#9a896a',scene,2.05,2.8,-2.76);
@@ -63,7 +63,7 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   // Small plants soften the room without heavy imported models.
   function plant(x,y,z,scale){const g=addGroup(x,y,z);g.scale.setScalar(scale);cylinder(.21,.15,.35,'#9a6146',g,0,.175,0);for(let i=0;i<6;i++){const leaf=mesh(new THREE.SphereGeometry(.18,12,8),mat(i%2?'#627752':'#78825a'),g);leaf.scale.set(.55,2.3,.45);leaf.position.set(Math.cos(i)*.16,.57+(i%3)*.1,Math.sin(i)*.16);leaf.rotation.z=Math.cos(i)*.45;}return g;}
   plant(-3.52,0,.05,1.3);plant(.62,1.09,-.58,.55);
-  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let active=false,disposed=false,frameId=0,renderCount=0,hovered=null,selection=null,focusAmount=0,tween=null,reducedMotion=reduced;
+  const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let active=false,disposed=false,frameId=0,renderCount=0,hovered=null,selection=null,focusAmount=0,tween=null,entry=null,entryAmount=1,reading=false,reducedMotion=reduced;
   let parallax={x:0,y:0,tx:0,ty:0};
   function findHit(event){const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);for(const hit of raycaster.intersectObjects(interactive,true)){let root=hit.object;while(root&&!root.userData.action)root=root.parent;if(root)return root;}return null;}
   function pointerMove(event){if(selection)return;const r=renderer.domElement.getBoundingClientRect();parallax.tx=(event.clientX-r.left)/r.width-.5;parallax.ty=(event.clientY-r.top)/r.height-.5;hovered=findHit(event);renderer.domElement.style.cursor=hovered?'pointer':'default';onHover(hovered?{text:hovered.userData.label,x:event.clientX-r.left,y:event.clientY-r.top}:null);invalidate();}
@@ -71,21 +71,24 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   function click(event){if(selection)return;const hit=findHit(event);if(hit)onSelect(hit.userData.action);}
   renderer.domElement.addEventListener('pointermove',pointerMove);renderer.domElement.addEventListener('pointerleave',pointerLeave);renderer.domElement.addEventListener('click',click);
   const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));const smooth=x=>x*x*(3-2*x);
-  const targets={books:new THREE.Vector3(-2.15,1.9,-1.8),book:new THREE.Vector3(0,1.7,.8),album:new THREE.Vector3(.35,1.2,.5),photo:new THREE.Vector3(.35,1.2,.5),music:new THREE.Vector3(1.6,1.35,-.5),screen:new THREE.Vector3(1.53,1.65,-.55),notebook:new THREE.Vector3(-.95,1.2,.62)};
+  const targets={books:new THREE.Vector3(-2.15,1.9,-1.8),book:new THREE.Vector3(0,2.0,.8),album:new THREE.Vector3(.35,1.2,.5),photo:new THREE.Vector3(.35,1.2,.5),music:new THREE.Vector3(1.6,1.35,-.5),screen:new THREE.Vector3(1.53,1.65,-.55),notebook:new THREE.Vector3(-.95,1.2,.62)};
   function pose(time){
     let moving=false;
-    if(tween){const f=clamp((time-tween.start)/tween.duration);focusAmount=THREE.MathUtils.lerp(tween.from,tween.to,smooth(f));moving=f<1;if(f===1){const done=tween.resolve;tween=null;if(focusAmount===0)selection=null;done?.(true);}}
-    for(const model of allModels){model.position.copy(model.userData.base);model.rotation.copy(model.userData.rotation);if(bookModels.has(model.userData.action.id))model.scale.setScalar(1);const next=(!selection&&model===hovered)?1:0;model.userData.hover=reducedMotion?next:THREE.MathUtils.lerp(model.userData.hover,next,.15);if(Math.abs(next-model.userData.hover)>.002)moving=true;model.position.z+=model.userData.hover*(model.userData.action.type==='book'?.19:.04);if(model.userData.action.type!=='book')model.position.y+=model.userData.hover*.035;if(model.userData.hinge)model.userData.hinge.rotation.y=0;}
+    if(entry){const fraction=clamp((time-entry.start)/entry.duration);entryAmount=smooth(fraction);moving=fraction<1;if(fraction===1){const resolve=entry.resolve;entry=null;resolve(true);}}
+    renderer.toneMappingExposure=1.05+.10*entryAmount;
+    if(tween){const f=clamp((time-tween.start)/tween.duration);focusAmount=THREE.MathUtils.lerp(tween.from,tween.to,smooth(f));moving=moving||f<1;if(f===1){const done=tween.resolve;tween=null;if(focusAmount===0)selection=null;done?.(true);}}
+    for(const model of allModels){model.visible=!(reading&&selection?.type==='book'&&model.userData.action.id===selection.id);model.position.copy(model.userData.base);model.rotation.copy(model.userData.rotation);if(bookModels.has(model.userData.action.id))model.scale.setScalar(1);const next=(!selection&&model===hovered)?1:0;model.userData.hover=reducedMotion?next:THREE.MathUtils.lerp(model.userData.hover,next,.15);if(Math.abs(next-model.userData.hover)>.002)moving=true;model.position.z+=model.userData.hover*(model.userData.action.type==='book'?.19:.04);if(model.userData.action.type!=='book')model.position.y+=model.userData.hover*.035;if(model.userData.hinge)model.userData.hinge.rotation.y=0;}
     const p=focusAmount;if(selection){
       const type=selection.type;
-      if(type==='book'){const model=bookModels.get(selection.id);if(model){const extracted=model.userData.base.clone().add(new THREE.Vector3(0,0,.6));const draw=smooth(clamp(p/.25)),center=smooth(clamp((p-.25)/.40)),open=smooth(clamp((p-.66)/.30));model.position.copy(model.userData.base).lerp(extracted,draw).lerp(targets.book,center);model.rotation.y=THREE.MathUtils.lerp(Math.PI/2,0,center);model.rotation.x=-.08*center;model.scale.setScalar(1+center*.42);model.userData.hinge.rotation.y=-Math.PI*.96*open;}}
+      if(type==='book'){const model=bookModels.get(selection.id);if(model){const extracted=model.userData.base.clone().add(new THREE.Vector3(0,0,.6));const draw=smooth(clamp(p/.25)),center=smooth(clamp((p-.25)/.40)),open=smooth(clamp((p-.66)/.30));model.position.copy(model.userData.base).lerp(extracted,draw).lerp(targets.book,center);model.rotation.y=THREE.MathUtils.lerp(Math.PI/2,0,center);model.rotation.x=-.08*center;model.scale.setScalar(1+center*.42);model.userData.hinge.rotation.y=-Math.PI*.96*open;model.position.x+=.48*open;}}
       if(type==='album'||type==='photo'){album.userData.hinge.rotation.y=-Math.PI*.88*p;photoModels.forEach((m,i)=>{m.position.x+=(i-1.5)*.32*p;m.position.z+=((i%2)*.4+.20)*p;m.position.y+=.035*i*p;m.rotation.y=(i-1.5)*.14*p;});}
       if(type==='notebook')notebook.userData.hinge.rotation.y=-Math.PI*.8*p;
       if(type==='music'){guitar.position.z+=.3*p;guitar.position.y+=.1*p;if(!reducedMotion){vinyl.rotation.y=time*.00016;moving=true;}}
       screenMaterial.emissiveIntensity=type==='screen'?p*.65:0;
     }else screenMaterial.emissiveIntensity=0;
     parallax.x=reducedMotion?0:THREE.MathUtils.lerp(parallax.x,parallax.tx,.065);parallax.y=reducedMotion?0:THREE.MathUtils.lerp(parallax.y,parallax.ty,.065);if(Math.abs(parallax.x-parallax.tx)>.002||Math.abs(parallax.y-parallax.ty)>.002)if(!reducedMotion)moving=true;
-    const look=homeLook.clone(),position=homeCamera.clone();if(selection){const target=targets[selection.type]||targets.books;look.lerp(target,p);const zoom=selection.type==='books'?new THREE.Vector3(-.6,3.1,4.4):selection.type==='book'?new THREE.Vector3(.3,2.6,5.8):new THREE.Vector3(target.x+2.6,target.y+2.0,target.z+5.0);position.lerp(zoom,p);}
+    const look=homeLook.clone(),position=homeCamera.clone();if(selection){const target=targets[selection.type]||targets.books;look.lerp(target,p);const zoom=selection.type==='books'?new THREE.Vector3(-1.2,2.28,1.4):selection.type==='book'?new THREE.Vector3(.15,2.38,3.7):new THREE.Vector3(target.x+1.4,target.y+.8,target.z+3.4);position.lerp(zoom,p);}
+    position.z+=.42*(1-entryAmount)*(1-p);position.y+=.04*(1-entryAmount)*(1-p);
     position.x+=parallax.x*.20*(1-p);position.y-=parallax.y*.10*(1-p);camera.position.copy(position);camera.lookAt(look);return moving;
   }
   function tick(time){frameId=0;if(!active||disposed)return;const moving=pose(time);renderer.render(scene,camera);renderCount++;if(moving)invalidate();}
@@ -93,15 +96,21 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
   function resize(){if(disposed)return;const r=container.getBoundingClientRect();if(r.width<1||r.height<1)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();invalidate();}
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(container);
   function animate(to){if(tween)tween.resolve(false);if(!active){focusAmount=to;tween=null;if(to===0)selection=null;return Promise.resolve(true);}return new Promise(resolve=>{tween={from:focusAmount,to,start:performance.now(),duration:reducedMotion?1:to?1600:850,resolve};invalidate();});}
-  const onLost=event=>{event.preventDefault();active=false;cancelAnimationFrame(frameId);frameId=0;if(tween){tween.resolve(false);tween=null;}onFailure('3D 暂时不可用，可继续使用下方物件入口。');};
+  function finishEntry(){if(entry){entry.resolve(false);entry=null;}entryAmount=1;invalidate();}
+  const onLost=event=>{event.preventDefault();active=false;finishEntry();cancelAnimationFrame(frameId);frameId=0;if(tween){tween.resolve(false);tween=null;}onFailure('3D 暂时不可用，可继续使用下方物件入口。');};
   renderer.domElement.addEventListener('webglcontextlost',onLost);
   return {
-    focus(action){selection=action;focusAmount=0;hovered=null;onHover(null);return animate(1);},
-    reset(){return animate(0);},
-    setActive(value){active=value;if(!value){cancelAnimationFrame(frameId);frameId=0;}else{resize();invalidate();}},
-    setReduced(value){reducedMotion=value;if(value){parallax.tx=parallax.ty=0;if(tween)tween.duration=1;}invalidate();},
+    prepareEntry(){finishEntry();entryAmount=reducedMotion?1:0;invalidate();},
+    enter(){finishEntry();if(reducedMotion||!active)return Promise.resolve(true);entryAmount=0;return new Promise(resolve=>{entry={start:performance.now(),duration:800,resolve};invalidate();});},
+    finishEntry,
+    setReading(value){reading=value;invalidate();},
+    focus(action){finishEntry();reading=false;selection=action;focusAmount=0;hovered=null;onHover(null);return animate(1);},
+    reset(){reading=false;return animate(0);},
+    setActive(value){active=value;if(!value){finishEntry();cancelAnimationFrame(frameId);frameId=0;}else{resize();invalidate();}},
+    setReduced(value){reducedMotion=value;if(value){finishEntry();parallax.tx=parallax.ty=0;if(tween)tween.duration=1;}invalidate();},
+    resize,
     render:invalidate,
-    dispose(){disposed=true;active=false;cancelAnimationFrame(frameId);resizeObserver.disconnect();tween?.resolve(false);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});textures.forEach(t=>t.dispose());renderer.dispose();renderer.domElement.remove();},
-    getDiagnostics(){return {frames:renderCount,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,active};}
+    dispose(){disposed=true;active=false;finishEntry();cancelAnimationFrame(frameId);resizeObserver.disconnect();tween?.resolve(false);scene.traverse(o=>{o.geometry?.dispose();if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();}});textures.forEach(t=>t.dispose());renderer.dispose();renderer.domElement.remove();},
+    getDiagnostics(){return {entering:Boolean(entry),frames:renderCount,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,active};}
   };
 }
