@@ -8,6 +8,7 @@ const label=document.querySelector('#room-hover-label');
 const desktop=matchMedia('(min-width: 760px)');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const esc=text=>String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function bookInk(color){const h=color.replace('#','');return parseInt(h.slice(0,2),16)*.299+parseInt(h.slice(2,4),16)*.587+parseInt(h.slice(4,6),16)*.114>150?'#3B362F':'#FBF8F2';}
 function photoURL(path){try{const u=new URL(path,location.href);return typeof path==='string'&&u.origin===location.origin&&['http:','https:'].includes(u.protocol)?u.href:'';}catch{return '';}}
 const overlay=document.createElement('section');overlay.className='room-overlay';overlay.hidden=true;overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','room-panel-title');
 overlay.innerHTML='<div class="room-panel-top"><span class="eyebrow">Private Collection</span><button class="overlay-close" aria-label="关闭收藏，返回房间">返回房间 ×</button></div><div class="room-panel-content"></div>';
@@ -24,7 +25,7 @@ function setLocked(value){
 function showPanel(action){
   currentAction=action;engine?.setReading(action.type==='book');overlay.className='room-overlay panel-'+action.type;
   if(action.type==='books'){
-    panel.innerHTML='<h2 id="room-panel-title">On my bookshelf.</h2><div class="shelf-browser">'+books.map(b=>`<button class="shelf-book" data-book-id="${esc(b.id)}" style="--book-color:${esc(b.color)}" aria-label="打开 ${esc(b.title)}"><small>${esc(b.category)}</small><strong>${esc(b.title)}</strong><span>${esc(b.author)}</span></button>`).join('')+'</div>';
+    panel.innerHTML='<h2 id="room-panel-title">On my bookshelf.</h2><div class="shelf-browser">'+books.map(b=>`<button class="shelf-book" data-book-id="${esc(b.id)}" style="--book-color:${esc(b.color)};--book-ink:${bookInk(b.color)}" aria-label="打开 ${esc(b.title)}"><small>${esc(b.category)}</small><strong>${esc(b.title)}</strong><span>${esc(b.author)}</span></button>`).join('')+'</div>';
   }else if(action.type==='book'){
     const b=books.find(b=>b.id===action.id);if(!b)return;
     const index=books.indexOf(b);
@@ -74,7 +75,8 @@ function fallback(message){settleEntry();failed=true;engine?.setActive(false);st
 async function loadRoom(){
   if(loading||engine||failed||!desktop.matches||!inRoom())return;
   stage.dataset.renderMode='loading';status.textContent='正在准备私人空间…';
-  loading=import('./room-3d.js').then(({createRoom})=>{
+  loading=import('./room-3d.js').then(async({createRoom})=>{
+    if(document.fonts)await document.fonts.load('400 16px "DM Serif Display"').catch(()=>null);
     engine=createRoom({container,books,photos,reduced:reduced.matches,onSelect:action=>explore(action),onHover:hover=>{if(!hover){label.hidden=true;return;}label.textContent=hover.text;label.hidden=false;label.style.left=Math.max(10,Math.min(container.clientWidth-240,hover.x+16))+'px';label.style.top=Math.max(10,hover.y-42)+'px';},onFailure:fallback});
     if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))engine.prepareEntry();
     engine.setActive(inRoom()&&desktop.matches);stage.classList.add('has-webgl');stage.dataset.renderMode='webgl';stage.dataset.interaction='idle';status.textContent='';if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))beginEntry();

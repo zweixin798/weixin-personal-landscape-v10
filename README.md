@@ -1,6 +1,6 @@
 # Weixin Zhang — Personal Landscape
 
-A static personal portfolio with six chapters, with continuous Experience and Education sections and a full-bleed desktop 3D private room.
+A static personal portfolio with six chapters, with a continuous Experience section and a desktop horizontal Education map and a full-bleed desktop 3D private room.
 
 ## Sections
 
@@ -33,7 +33,7 @@ Set Settings → Pages → Source to GitHub Actions, then run the included Pages
 - `scenes.js` / `scenes.css`: viewport navigation, wheel/touch/keyboard handling and overflow reading.
 - `app.js`: portrait, contact links and the optional project URL.
 - `experience.js` / `experience.css`: shared growing path, internal scroll progress and two light keyword expansions.
-- `education.js` / `education.css`: the combined education chapter, Question Shift and scroll-drawn connecting paths.
+- `education.js` / `education.css`: one desktop Undergraduate → Question Shift → Graduate map, with stacked mobile reading and internal anchors.
 - `private-room.js` / `private-room.css`: accessible HTML reading layers, mobile fallback, gallery and focus management.
 - `room-3d.js`: lazily loaded room geometry, raycasting, lighting, book hinges and object/camera transitions.
 - `scripts/vendor.mjs`: copies the pinned Three.js modules and license into the build assets.
@@ -58,3 +58,9 @@ Pushing to `main` runs the GitHub Pages workflow. The published site is updated 
 The desktop room fills its scene below the global header and above the scene controls. Its title and dock float over the canvas. A coordinated 800 ms card expansion, mild forward dolly and exposure change replace the default vertical scene movement on entry. Reduced motion skips the expansion and dolly; leaving cancels pending entry work.
 
 `#undergraduate`, `#question-shift` and `#understanding` remain shareable internal anchors within the single `#education` scene. They do not create extra scenes. Experience illustrations are inline SVG, while the existing scroll controller and factual copy remain unchanged.
+
+## Visual system
+
+English display titles use DM Serif Display at weight 400, line-height 1.04 (1.08 for the motto), and letter spacing −0.02em. UI, metadata, buttons and small labels use the system sans stack at weight 500/600. Chinese body text keeps the PingFang/system sans stack. `typography.css` applies these roles consistently.
+
+Private Space uses the Sunlit Editorial Room palette: light cream walls, warm wood floors, oak furniture, sage/powder-blue objects and terracotta details. Its floating dock is charcoal. Material role colors are centralized in `ROOM_PALETTE` in `room-3d.js`; matching HTML fallback colors are scoped to Private Space.

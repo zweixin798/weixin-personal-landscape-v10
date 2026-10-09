@@ -30,7 +30,7 @@ if((experience.match(/class="company-stop /g)||[]).length!==3||(experience.match
 if((experience.match(/class="node-orbit"/g)||[]).length!==2)errors.push('Only DeepWisdom and Baidu have keyword expansions');
 if(experience.includes('独立项目'))errors.push('Repeated project link in experience');
 if((experience.match(/class="work-visual"/g)||[]).length!==9||experience.includes('mini-flow'))errors.push('Experience needs nine concrete SVG illustrations');
-if(!html.includes('<article id="understanding"')||!html.includes('id="question-shift"'))errors.push('Education needs an internal graduate article and question shift');
+if(!html.includes('<article id="understanding"')||!html.includes('id="question-shift"')||!html.includes('class="education-map"'))errors.push('Education needs one horizontal map with three internal articles');
 if(!(await readFile('styles.css','utf8')).includes('--ivory:#F6F3EA'))errors.push('Ivory token must be #F6F3EA');
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
 console.log(`PASS: ${ids.length} unique anchors, local asset references, JavaScript syntax, configured images and current six-scene content requirements.`);
