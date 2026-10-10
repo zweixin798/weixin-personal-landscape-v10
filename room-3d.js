@@ -111,7 +111,7 @@ export function createRoom({container,books,photos,onSelect,onHover,onFailure,re
     setReading(value){reading=value;invalidate();},
     focus(action){finishEntry();reading=false;selection=action;focusAmount=0;hovered=null;onHover(null);return animate(1);},
     reset(){reading=false;return animate(0);},
-    setActive(value){active=value;if(!value){finishEntry();cancelAnimationFrame(frameId);frameId=0;}else{resize();invalidate();}},
+    setActive(value){active=value;if(!value){finishEntry();cancelAnimationFrame(frameId);frameId=0;if(tween){const settle=tween.resolve;tween=null;settle(false);}}else{resize();invalidate();}},
     setReduced(value){reducedMotion=value;if(value){finishEntry();parallax.tx=parallax.ty=0;if(tween)tween.duration=1;}invalidate();},
     resize,
     render:invalidate,

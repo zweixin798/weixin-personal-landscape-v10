@@ -29,6 +29,9 @@ function setBgm(on){
 }
 bgmCue.addEventListener('click',()=>{bgmFrame.src=BGM_SRC;bgmCue.hidden=true;bgmPlayer.hidden=false;});
 bgmClose.addEventListener('click',()=>setBgm(false));
+const GUESTBOOK_KEY='wx-guestbook',GUESTBOOK_ENDPOINT='';
+function getGuestEntries(){try{return JSON.parse(localStorage.getItem(GUESTBOOK_KEY)||'[]');}catch{return [];}}
+function saveGuestEntry(e){const all=getGuestEntries();all.unshift(e);try{localStorage.setItem(GUESTBOOK_KEY,JSON.stringify(all.slice(0,100)));}catch{}}
 let engine=null,loading=null,failed=false,sequence=0,lastTrigger=null,locked=[],currentAction=null;
 let wasRoomActive=false,entryTicket=0,entryFrameA=0,entryFrameB=0;
 function inRoom(){return !document.documentElement.classList.contains('scene-mode')||section.classList.contains('is-current');}
@@ -61,7 +64,11 @@ function showPanel(action){
   }else if(action.type==='screen'){
     panel.innerHTML='<h2 id="room-panel-title">Screen</h2><div class="screen-posters"><article class="show-poster twin-peaks"><span>Series / 01</span><div class="curtains" aria-hidden="true"></div><h3>Twin<br>Peaks</h3></article><article class="show-poster fleabag"><span>Series / 02</span><div class="poster-ring" aria-hidden="true"></div><h3>Fleabag</h3></article></div><div class="screen-note">Mockumentary / Pseudo-documentary</div>';
   }else if(action.type==='notebook'){
-    panel.innerHTML='<h2 id="room-panel-title">Notebook</h2><div class="notebook-page"><span class="eyebrow">Notes</span><div class="notebook-keywords">'+(data.notebook||[]).map(word=>`<span>${esc(word)}</span>`).join('')+'</div></div>';
+    panel.innerHTML='<h2 id="room-panel-title">Guestbook · 访客留言</h2><p class="guestbook-intro">Leave a note — say hi, share a thought, or recommend a book or a place. 欢迎留下名字和想说的话。</p><form class="guestbook-form" id="guestbook-form"><input type="text" name="gname" maxlength="24" placeholder="你的称呼 / Your name"><textarea name="gmessage" maxlength="400" rows="4" placeholder="想说的话… / Write a note…" required></textarea><button type="submit">留下留言 · Leave a note</button><p class="guestbook-status" role="status"></p></form><div class="guestbook-entries" id="guestbook-entries"></div>';
+    const form=panel.querySelector('#guestbook-form'),status=form.querySelector('.guestbook-status'),list=panel.querySelector('#guestbook-entries');
+    const renderEntries=()=>{const es=getGuestEntries();list.innerHTML=es.length?'<span class="eyebrow">Notes left here · 留言</span>'+es.map(e=>`<figure class="guest-entry"><blockquote>${esc(e.message)}</blockquote><figcaption>— ${esc(e.name||'Anonymous')}<time>${esc(e.at||'')}</time></figcaption></figure>`).join(''):'';};
+    renderEntries();
+    form.addEventListener('submit',async(ev)=>{ev.preventDefault();const name=form.gname.value.trim(),message=form.gmessage.value.trim();if(!message)return;const at=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'short',day:'numeric'});const entry={name:name||'Anonymous',message,at};saveGuestEntry(entry);renderEntries();form.reset();status.textContent='留言已保存，谢谢你 ♪';if(GUESTBOOK_ENDPOINT){try{await fetch(GUESTBOOK_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});}catch{}}});
   }
   overlay.hidden=false;overlay.scrollTop=0;returning.hidden=true;overlay.querySelector('.overlay-close').focus({preventScroll:true});
 }
@@ -72,7 +79,12 @@ async function explore(action,trigger){
   if(!document.body.classList.contains('room-exploring'))lastTrigger=trigger||stage.querySelector(`[data-room-action="${dockType}"]`);
   setLocked(true);overlay.hidden=true;returning.hidden=false;returning.focus({preventScroll:true});stage.classList.add('room-focused');stage.dataset.interaction='focusing';label.hidden=true;
   const cameraType=['photo','places','film'].includes(action.type)?'album':action.type;
-  if(engine&&desktop.matches&&inRoom())await engine.focus({...action,type:cameraType});
+  if(engine&&desktop.matches&&inRoom()){
+    await Promise.race([
+      engine.focus({...action,type:cameraType}),
+      new Promise(done=>setTimeout(done,2200)),
+    ]);
+  }
   if(ticket!==sequence)return;
   stage.dataset.interaction='reading';showPanel(action);
 }

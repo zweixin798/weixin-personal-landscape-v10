@@ -19,7 +19,17 @@ window.SITE_CONTENT = {
     { id:'place-06', collection:'places', src: 'assets/photos/place-06.jpg', thumb: 'assets/photos/place-06-thumb.jpg', place: 'Boston', date: '', alt: '波士顿 Downtown Crossing 街景与历史建筑' },
     { id:'place-07', collection:'places', src: 'assets/photos/place-07.jpg', thumb: 'assets/photos/place-07-thumb.jpg', place: '', date: '', alt: '新古典建筑的科林斯柱廊与庭院' },
     { id:'place-08', collection:'places', src: 'assets/photos/place-08.jpg', thumb: 'assets/photos/place-08-thumb.jpg', place: '', date: '', alt: '海滨小镇黄昏的街道、旗帜与人群' },
-    { id:'place-09', collection:'places', src: 'assets/photos/place-09.jpg', thumb: 'assets/photos/place-09-thumb.jpg', place: '', date: '', alt: '长曝光下的海浪、沙滩与远岸' }
+    { id:'place-09', collection:'places', src: 'assets/photos/place-09.jpg', thumb: 'assets/photos/place-09-thumb.jpg', place: '', date: '', alt: '长曝光下的海浪、沙滩与远岸' },
+    { id:'film-01', collection:'film', src:'assets/photos/film-01.jpg', thumb:'assets/photos/film-01-thumb.jpg', place:'', date:'', alt:'夜海滩，披毯子笑的女孩与拿飞盘的身影' },
+    { id:'film-02', collection:'film', src:'assets/photos/film-02.jpg', thumb:'assets/photos/film-02-thumb.jpg', place:'', date:'', alt:'暮色中的海滨旅馆与粉紫天空' },
+    { id:'film-03', collection:'film', src:'assets/photos/film-03.jpg', thumb:'assets/photos/film-03-thumb.jpg', place:'', date:'', alt:'机场到达区的网约车接送点' },
+    { id:'film-04', collection:'film', src:'assets/photos/film-04.jpg', thumb:'assets/photos/film-04-thumb.jpg', place:'', date:'', alt:'候机厅登机口，座椅上的剪影' },
+    { id:'film-05', collection:'film', src:'assets/photos/film-05.jpg', thumb:'assets/photos/film-05-thumb.jpg', place:'', date:'', alt:'昏暗主题餐厅的两帧，烤肋排与玉米' },
+    { id:'film-06', collection:'film', src:'assets/photos/film-06.jpg', thumb:'assets/photos/film-06-thumb.jpg', place:'', date:'', alt:'宝丽来：花丛石凳上的粉黑裙身影' },
+    { id:'film-07', collection:'film', src:'assets/photos/film-07.jpg', thumb:'assets/photos/film-07-thumb.jpg', place:'Portland, ME', date:'', alt:'波特兰老港码头，红砖仓库与白色游艇' },
+    { id:'film-08', collection:'film', src:'assets/photos/film-08.jpg', thumb:'assets/photos/film-08-thumb.jpg', place:'Portland, ME', date:'', alt:'波特兰步行街，树下读书的人' },
+    { id:'film-09', collection:'film', src:'assets/photos/film-09.jpg', thumb:'assets/photos/film-09-thumb.jpg', place:'', date:'', alt:'仰拍带船形风向标的钟楼' },
+    { id:'film-10', collection:'film', src:'assets/photos/film-10.jpg', thumb:'assets/photos/film-10-thumb.jpg', place:'', date:'', alt:'城市街道，双层巴士与公交站牌' }
   ],
   contact: { email: 'zweixin798@gmail.com', resume: null, github: 'https://github.com/zweixin798', x: null }
 };
