@@ -3,14 +3,23 @@ window.SITE_CONTENT = {
   projectUrl: null,
   portrait: { src: 'assets/photos/portrait.jpg', alt: '草原山丘前微笑的个人肖像', position: 'center' },
   photos: [
-    { src: 'assets/photos/station.jpg', thumb: 'assets/photos/station-thumb.jpg', place: 'New York', date: '2024.09', alt: '纽约中央车站的拱窗、星空天花板与大厅' },
-    { src: 'assets/photos/dusk.jpg', thumb: 'assets/photos/dusk-thumb.jpg', place: '', date: '', alt: '暮色天空下的木屋与沙地' },
-    { src: 'assets/photos/green.jpg', thumb: 'assets/photos/green-thumb.jpg', place: '', date: '2024.09', alt: '树荫、路灯与午后公园的红砖步道' },
-    { src: 'assets/photos/street.jpg', thumb: 'assets/photos/street-thumb.jpg', place: 'Boston', date: '2024.09', alt: '波士顿 Downtown Crossing 街景与建筑立面' },
-    { src: 'assets/photos/departure.jpg', thumb: 'assets/photos/departure-thumb.jpg', place: '', date: '', alt: '航站楼窗边的候机座椅' },
-    { src: 'assets/photos/sunset.jpg', thumb: 'assets/photos/sunset-thumb.jpg', place: '', date: '2024.09', alt: '夕阳照亮的砖石建筑与树梢' },
-    { src: 'assets/photos/campus.jpg', thumb: 'assets/photos/campus-thumb.jpg', place: '', date: '2024.09', alt: '蓝天下石砌拱门与校园绿植' },
-    { src: 'assets/photos/arrival.jpg', thumb: 'assets/photos/arrival-thumb.jpg', place: '', date: '', alt: '从车窗看向机场到达区与出租车' }
+    { id:'station', collection:'places', src: 'assets/photos/station.jpg', thumb: 'assets/photos/station-thumb.jpg', place: 'New York', date: '2024.09', alt: '纽约中央车站的拱窗、星空天花板与大厅' },
+    { id:'dusk', collection:'places', src: 'assets/photos/dusk.jpg', thumb: 'assets/photos/dusk-thumb.jpg', place: '', date: '', alt: '暮色天空下的木屋与沙地' },
+    { id:'green', collection:'places', src: 'assets/photos/green.jpg', thumb: 'assets/photos/green-thumb.jpg', place: '', date: '2024.09', alt: '树荫、路灯与午后公园的红砖步道' },
+    { id:'street', collection:'places', src: 'assets/photos/street.jpg', thumb: 'assets/photos/street-thumb.jpg', place: 'Boston', date: '2024.09', alt: '波士顿 Downtown Crossing 街景与建筑立面' },
+    { id:'departure', collection:'places', src: 'assets/photos/departure.jpg', thumb: 'assets/photos/departure-thumb.jpg', place: '', date: '', alt: '航站楼窗边的候机座椅' },
+    { id:'sunset', collection:'places', src: 'assets/photos/sunset.jpg', thumb: 'assets/photos/sunset-thumb.jpg', place: '', date: '2024.09', alt: '夕阳照亮的砖石建筑与树梢' },
+    { id:'campus', collection:'places', src: 'assets/photos/campus.jpg', thumb: 'assets/photos/campus-thumb.jpg', place: '', date: '', alt: '蓝天下石砌拱门与校园绿植' },
+    { id:'arrival', collection:'places', src: 'assets/photos/arrival.jpg', thumb: 'assets/photos/arrival-thumb.jpg', place: '', date: '', alt: '从车窗看向机场到达区与出租车' },
+    { id:'place-01', collection:'places', src: 'assets/photos/place-01.jpg', thumb: 'assets/photos/place-01-thumb.jpg', place: 'Hong Kong', date: '', alt: '香港维多利亚港的邮轮与火烧云' },
+    { id:'place-02', collection:'places', src: 'assets/photos/place-02.jpg', thumb: 'assets/photos/place-02-thumb.jpg', place: 'Shanghai', date: '', alt: '上海黄浦江畔的暮色高楼与滨江步道' },
+    { id:'place-03', collection:'places', src: 'assets/photos/place-03.jpg', thumb: 'assets/photos/place-03-thumb.jpg', place: '', date: '', alt: '蓝调时分仰拍城市玻璃幕墙高楼' },
+    { id:'place-04', collection:'places', src: 'assets/photos/place-04.jpg', thumb: 'assets/photos/place-04-thumb.jpg', place: '', date: '', alt: '红砖教堂前的白色雕像与蓝天绿树' },
+    { id:'place-05', collection:'places', src: 'assets/photos/place-05.jpg', thumb: 'assets/photos/place-05-thumb.jpg', place: '', date: '', alt: '树影间被夕阳照亮的哥特式石塔' },
+    { id:'place-06', collection:'places', src: 'assets/photos/place-06.jpg', thumb: 'assets/photos/place-06-thumb.jpg', place: 'Boston', date: '', alt: '波士顿 Downtown Crossing 街景与历史建筑' },
+    { id:'place-07', collection:'places', src: 'assets/photos/place-07.jpg', thumb: 'assets/photos/place-07-thumb.jpg', place: '', date: '', alt: '新古典建筑的科林斯柱廊与庭院' },
+    { id:'place-08', collection:'places', src: 'assets/photos/place-08.jpg', thumb: 'assets/photos/place-08-thumb.jpg', place: '', date: '', alt: '海滨小镇黄昏的街道、旗帜与人群' },
+    { id:'place-09', collection:'places', src: 'assets/photos/place-09.jpg', thumb: 'assets/photos/place-09-thumb.jpg', place: '', date: '', alt: '长曝光下的海浪、沙滩与远岸' }
   ],
   contact: { email: 'zweixin798@gmail.com', resume: null, github: 'https://github.com/zweixin798', x: null }
 };

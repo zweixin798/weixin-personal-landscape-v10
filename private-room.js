@@ -1,5 +1,7 @@
 const data=window.SITE_CONTENT||{};
 const books=data.books||[],photos=data.photos||[];
+const places=photos.filter(p=>(p.collection||'places')==='places');
+const film=photos.filter(p=>p.collection==='film');
 const section=document.querySelector('#private');
 const stage=document.querySelector('#private-stage');
 const container=document.querySelector('#room-canvas');
@@ -15,6 +17,18 @@ overlay.innerHTML='<div class="room-panel-top"><span class="eyebrow">Private Col
 section.append(overlay);
 const panel=overlay.querySelector('.room-panel-content');
 const returning=document.createElement('button');returning.className='room-return';returning.textContent='返回房间 ×';returning.hidden=true;section.append(returning);
+const bgm=document.createElement('div');bgm.className='room-bgm';bgm.id='room-bgm';bgm.hidden=true;
+bgm.innerHTML='<button class="bgm-cue" type="button"><span class="bgm-disc" aria-hidden="true"></span><span class="bgm-text"><b>Between the Bars</b><small>Elliott Smith · 点一下，放首歌 ♪</small></span></button><div class="bgm-player" hidden><iframe title="Between the Bars — Elliott Smith" width="300" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe><button class="bgm-close" type="button" aria-label="关闭背景音乐">×</button></div>';
+section.append(bgm);
+const bgmCue=bgm.querySelector('.bgm-cue'),bgmPlayer=bgm.querySelector('.bgm-player'),bgmFrame=bgm.querySelector('iframe'),bgmClose=bgm.querySelector('.bgm-close');
+const BGM_SRC='https://open.spotify.com/embed/track/52Bg6oaos7twR7IUtEpqcE?utm_source=generator&theme=0';
+let bgmOn=false;
+function setBgm(on){
+  if(on&&!bgmOn){bgm.hidden=false;bgmOn=true;}
+  else if(!on&&bgmOn){bgmFrame.src='about:blank';bgmPlayer.hidden=true;bgmCue.hidden=false;bgm.hidden=true;bgmOn=false;}
+}
+bgmCue.addEventListener('click',()=>{bgmFrame.src=BGM_SRC;bgmCue.hidden=true;bgmPlayer.hidden=false;});
+bgmClose.addEventListener('click',()=>setBgm(false));
 let engine=null,loading=null,failed=false,sequence=0,lastTrigger=null,locked=[],currentAction=null;
 let wasRoomActive=false,entryTicket=0,entryFrameA=0,entryFrameB=0;
 function inRoom(){return !document.documentElement.classList.contains('scene-mode')||section.classList.contains('is-current');}
@@ -25,16 +39,23 @@ function setLocked(value){
 function showPanel(action){
   currentAction=action;engine?.setReading(action.type==='book');overlay.className='room-overlay panel-'+action.type;
   if(action.type==='books'){
-    panel.innerHTML='<h2 id="room-panel-title">On my bookshelf.</h2><div class="shelf-browser">'+books.map(b=>`<button class="shelf-book" data-book-id="${esc(b.id)}" style="--book-color:${esc(b.color)};--book-ink:${bookInk(b.color)}" aria-label="打开 ${esc(b.title)}"><small>${esc(b.category)}</small><strong>${esc(b.title)}</strong><span>${esc(b.author)}</span></button>`).join('')+'</div>';
+    const mail=(data.contact&&data.contact.email)||'';
+    panel.innerHTML='<h2 id="room-panel-title">最近两年读的书</h2><p class="shelf-intro"><span>Books I’ve read in the last two years.</span>'+(mail?' · <a class="shelf-mail" href="mailto:'+esc(mail)+'">Always happy to talk about these books — 欢迎邮件交流 ✉</a>':'')+'</p><div class="shelf-browser">'+books.map(b=>`<button class="shelf-book" data-book-id="${esc(b.id)}" style="--book-color:${esc(b.color)};--book-ink:${bookInk(b.color)}" aria-label="打开 ${esc(b.title)}"><small>${esc(b.category)}</small><strong>${esc(b.title)}</strong><span>${esc(b.author)}</span></button>`).join('')+'</div>';
   }else if(action.type==='book'){
     const b=books.find(b=>b.id===action.id);if(!b)return;
     const index=books.indexOf(b);
-    panel.innerHTML=`<div class="reading-spread" style="--book-color:${esc(b.color)}"><article class="reading-page left-page"><span class="eyebrow">${esc(b.category)}${b.year?' / '+esc(b.year):''}</span><h2 id="room-panel-title">${esc(b.title)}</h2><p class="book-author">${esc(b.author)}</p><div class="book-intro">${b.intro?esc(b.intro):'书籍简介待补充。'}</div><span class="page-number">01</span></article><article class="reading-page right-page"><span class="eyebrow">Reading Notes</span><h3>我的阅读心得</h3><div class="personal-notes">${b.notes?esc(b.notes).replace(/\n/g,'<br>'):'<p class="notes-pending">Notes coming later.</p>'}</div><span class="page-number">02</span></article></div><div class="reading-navigation"><button data-book-id="${esc(books[(index+books.length-1)%books.length].id)}">← 上一本</button><button data-room-panel="books">回到书架目录</button><button data-book-id="${esc(books[(index+1)%books.length].id)}">下一本 →</button></div>`;
+    panel.innerHTML=`<div class="reading-spread single-col" style="--book-color:${esc(b.color)}"><article class="reading-page left-page"><span class="eyebrow">${esc(b.category)}${b.year?' / '+esc(b.year):''}</span><h2 id="room-panel-title">${esc(b.title)}</h2><p class="book-author">${esc(b.author)}</p><div class="book-intro">${b.intro?esc(b.intro):'书籍简介待补充。'}</div><span class="page-number">01</span></article></div><div class="reading-navigation"><button data-book-id="${esc(books[(index+books.length-1)%books.length].id)}">← 上一本</button><button data-room-panel="books">回到书架目录</button><button data-book-id="${esc(books[(index+1)%books.length].id)}">下一本 →</button></div>`;
   }else if(action.type==='album'){
-    panel.innerHTML='<h2 id="room-panel-title">Places & moments.</h2><div class="contact-sheet">'+photos.map((p,i)=>`<button data-room-photo="${i}" class="contact-photo" style="--tilt:${[-4,3,-2,4][i%4]}deg" aria-label="放大照片：${esc(p.alt||p.place||'旅行照片')}"><img src="${esc(photoURL(p.thumb||p.src))}" alt="${esc(p.alt||'旅行照片')}" width="480" height="600" loading="lazy"><span>${esc(p.place)} ${esc(p.date)}</span><small>${String(i+1).padStart(2,'0')}</small></button>`).join('')+'</div>';
+    panel.innerHTML='<h2 id="room-panel-title">Places & moments.</h2><p class="album-intro">I shoot on 35mm film and Polaroid — for the grain, the instant light, and moments worth keeping.</p><div class="album-collections"><button class="collection-card places-card" data-room-panel="places"><b>Places</b><span>去过的地方 · 不完全统计</span><em>'+places.length+'</em></button><button class="collection-card film-card" data-room-panel="film"><b>Film &amp; Polaroid</b><span>胶片与宝丽来</span><em>'+film.length+'</em></button></div>';
+  }else if(action.type==='places'||action.type==='film'){
+    const list=action.type==='places'?places:film;
+    const heading=action.type==='places'?'Places · 去过的地方':'Film &amp; Polaroid · 胶片与宝丽来';
+    const note=action.type==='places'?'不完全统计——没有认真记录都去过哪些地方，想起来再补 :)':'35mm 胶片与宝丽来，冲洗、扫描之后慢慢放上来。';
+    panel.innerHTML='<h2 id="room-panel-title">'+heading+'</h2><p class="sheet-note">'+note+'</p>'+(list.length?'<div class="contact-sheet">'+list.map((p,i)=>`<button data-room-photo="${esc(p.collection||'places')}" data-room-photo-id="${esc(p.id)}" class="contact-photo" style="--tilt:${[-4,3,-2,4][i%4]}deg" aria-label="放大照片：${esc(p.alt||p.place||'照片')}"><img src="${esc(photoURL(p.thumb||p.src))}" alt="${esc(p.alt||'照片')}" width="480" height="600" loading="lazy"><span>${esc(p.place)} ${esc(p.date)}</span><small>${String(i+1).padStart(2,'0')}</small></button>`).join('')+'</div>':'<p class="sheet-empty">胶片还在冲洗，稍后回来。</p>')+'<p><button class="back-to-album" data-room-panel="album">← 回相册</button></p>';
   }else if(action.type==='photo'){
-    const p=photos[action.index];if(!p)return;
-    panel.innerHTML=`<h2 id="room-panel-title" class="sr-only">${esc(p.alt||'照片详情')}</h2><button class="back-to-album" data-room-panel="album">← 返回相册</button><figure class="room-photo-large"><img src="${esc(photoURL(p.src))}" alt="${esc(p.alt||'旅行照片')}"><figcaption>${esc(p.place)} ${esc(p.date)}</figcaption></figure>`;
+    const p=photos.find(x=>x.id===action.id);if(!p)return;
+    const back=p.collection||'places';
+    panel.innerHTML=`<h2 id="room-panel-title" class="sr-only">${esc(p.alt||'照片详情')}</h2><button class="back-to-album" data-room-panel="${back}">← 返回${back==='film'?'胶片与宝丽来':'去过的地方'}</button><figure class="room-photo-large"><img src="${esc(photoURL(p.src))}" alt="${esc(p.alt||'照片')}"><figcaption>${esc(p.place)} ${esc(p.date)}</figcaption></figure>`;
   }else if(action.type==='music'){
     panel.innerHTML='<h2 id="room-panel-title">The Beatles</h2><div class="music-reading"><div class="record" aria-hidden="true"></div><p>Guitar / Singing<br>吉他 / 弹唱</p></div>';
   }else if(action.type==='screen'){
@@ -47,9 +68,11 @@ function showPanel(action){
 async function explore(action,trigger){
   const ticket=++sequence;
   settleEntry();
-  if(!document.body.classList.contains('room-exploring'))lastTrigger=trigger||stage.querySelector(`[data-room-action="${action.type==='book'?'books':action.type==='photo'?'album':action.type}"]`);
+  const dockType=action.type==='book'?'books':['photo','places','film'].includes(action.type)?'album':action.type;
+  if(!document.body.classList.contains('room-exploring'))lastTrigger=trigger||stage.querySelector(`[data-room-action="${dockType}"]`);
   setLocked(true);overlay.hidden=true;returning.hidden=false;returning.focus({preventScroll:true});stage.classList.add('room-focused');stage.dataset.interaction='focusing';label.hidden=true;
-  if(engine&&desktop.matches&&inRoom())await engine.focus(action);
+  const cameraType=['photo','places','film'].includes(action.type)?'album':action.type;
+  if(engine&&desktop.matches&&inRoom())await engine.focus({...action,type:cameraType});
   if(ticket!==sequence)return;
   stage.dataset.interaction='reading';showPanel(action);
 }
@@ -61,7 +84,7 @@ async function close(){
 }
 section.addEventListener('click',event=>{
   const book=event.target.closest('[data-book-id]');if(book){explore({type:'book',id:book.dataset.bookId},lastTrigger);return;}
-  const photo=event.target.closest('[data-room-photo]');if(photo){showPanel({type:'photo',index:Number(photo.dataset.roomPhoto)});return;}
+  const photo=event.target.closest('[data-room-photo]');if(photo){showPanel({type:'photo',collection:photo.dataset.roomPhoto,id:photo.dataset.roomPhotoId});return;}
   const back=event.target.closest('[data-room-panel]');if(back){if(back.dataset.roomPanel==='books')explore({type:'books'},lastTrigger);else showPanel({type:back.dataset.roomPanel});return;}
   const object=event.target.closest('[data-object],[data-room-action]');if(object)explore({type:object.dataset.object||object.dataset.roomAction},object);
 });
@@ -103,7 +126,9 @@ function beginEntry(){
   });});
 }
 function updateActive(){
-  const active=inRoom()&&desktop.matches;
+  const here=inRoom();
+  const active=here&&desktop.matches;
+  setBgm(here);
   engine?.setActive(active);
   if(!inRoom()&&document.body.classList.contains('room-exploring'))close();
   if(!active){settleEntry();if(!desktop.matches){stage.classList.remove('has-webgl');stage.dataset.renderMode='mobile';}}
@@ -114,5 +139,5 @@ function updateActive(){
   wasRoomActive=active;
 }
 document.addEventListener('scenechange',updateActive);desktop.addEventListener('change',updateActive);reduced.addEventListener('change',()=>{engine?.setReduced(reduced.matches);if(reduced.matches)settleEntry();});
-if(!document.documentElement.classList.contains('scene-mode')){const io=new IntersectionObserver(entries=>{if(entries[0].isIntersecting)loadRoom();engine?.setActive(entries[0].isIntersecting&&desktop.matches);});io.observe(stage);}else updateActive();
-addEventListener('pagehide',()=>engine?.setActive(false));addEventListener('pageshow',updateActive);document.addEventListener('visibilitychange',()=>engine?.setActive(!document.hidden&&inRoom()&&desktop.matches));
+if(!document.documentElement.classList.contains('scene-mode')){const io=new IntersectionObserver(entries=>{const here=entries[0].isIntersecting;if(here)loadRoom();engine?.setActive(here&&desktop.matches);setBgm(here);});io.observe(stage);}else updateActive();
+addEventListener('pagehide',()=>{engine?.setActive(false);setBgm(false);});addEventListener('pageshow',updateActive);document.addEventListener('visibilitychange',()=>{const here=!document.hidden&&inRoom();engine?.setActive(here&&desktop.matches);setBgm(here);});
