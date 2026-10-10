@@ -7,11 +7,12 @@ function safeURL(value,{localOnly=false}={}){
 if(content.portrait&&safeURL(content.portrait.src,{localOnly:true})){
   const img=document.querySelector('#hero-image');img.src=safeURL(content.portrait.src,{localOnly:true});img.alt=content.portrait.alt||'张薇馨的个人照片';img.style.objectPosition=content.portrait.position||'center';
 }
-const contact=document.querySelector('#contact-links');
+const contactContainers=['#contact-links','#hero-contact-links'].map(sel=>document.querySelector(sel)).filter(Boolean);
 for(const [key,label] of Object.entries({email:'EMAIL ↗',resume:'RESUME ↗',github:'GITHUB ↗',x:'X ↗'})){
   const value=content.contact?.[key];if(!value)continue;
   const url=key==='email'?(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)?`mailto:${value}`:null):safeURL(value);
-  if(!url)continue;const a=document.createElement('a');a.href=url;a.textContent=label;if(key!=='email'){a.target='_blank';a.rel='noopener noreferrer'}contact.append(a);
+  if(!url)continue;const a=document.createElement('a');a.href=url;a.textContent=label;if(key!=='email'){a.target='_blank';a.rel='noopener noreferrer'}
+  contactContainers.forEach((container,i)=>container.append(i===0?a:a.cloneNode(true)));
 }
 // Optional future project URL. Do not expose a made-up link.
 const projectLink=document.querySelector('#project-link');

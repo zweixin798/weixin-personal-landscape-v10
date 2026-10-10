@@ -76,7 +76,7 @@ async function loadRoom(){
   if(loading||engine||failed||!desktop.matches||!inRoom())return;
   stage.dataset.renderMode='loading';status.textContent='正在准备私人空间…';
   loading=import('./room-3d.js').then(async({createRoom})=>{
-    if(document.fonts)await document.fonts.load('400 16px "DM Serif Display"').catch(()=>null);
+    try{await Promise.all([document.fonts.load('500 40px Fraunces'),document.fonts.load('500 19px Inter'),document.fonts.load('500 29px Inter')]);}catch(e){}
     engine=createRoom({container,books,photos,reduced:reduced.matches,onSelect:action=>explore(action),onHover:hover=>{if(!hover){label.hidden=true;return;}label.textContent=hover.text;label.hidden=false;label.style.left=Math.max(10,Math.min(container.clientWidth-240,hover.x+16))+'px';label.style.top=Math.max(10,hover.y-42)+'px';},onFailure:fallback});
     if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))engine.prepareEntry();
     engine.setActive(inRoom()&&desktop.matches);stage.classList.add('has-webgl');stage.dataset.renderMode='webgl';stage.dataset.interaction='idle';status.textContent='';if(inRoom()&&desktop.matches&&!document.body.classList.contains('room-exploring'))beginEntry();

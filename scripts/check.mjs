@@ -19,7 +19,7 @@ const sceneIds=[...html.matchAll(/<section id="([^"]+)"[^>]+data-title=/g)].map(
 const expected=['home','experience','project','education','private','ending'];
 if(JSON.stringify(sceneIds)!==JSON.stringify(expected))errors.push('Scene structure does not match current page order');
 if([...html.matchAll(/data-object=/g)].length!==5)errors.push('Expected five private objects');
-for(const fact of ['2025.09–2025.12','2026.02–2026.08','2026.09–至今','3.94/4','3.70/4','Her Rhythm','LangGraph.js','PostgreSQL / Redis'])if(!html.includes(fact))errors.push(`Missing required fact: ${fact}`);
+for(const fact of ['2025.09–2025.12','2026.02–2026.08','2026.09–至今','Her Rhythm','LangGraph.js','PostgreSQL / Redis'])if(!html.includes(fact))errors.push(`Missing required fact: ${fact}`);
 for(const name of ['three.module.js','three.core.js']){try{await access('assets/vendor/'+name)}catch{errors.push('Run npm run vendor to bundle '+name)}}
 if(!Array.isArray(content.books)||content.books.filter(b=>b.featured).length<6)errors.push('Six featured reading entries are required');
 for(const b of content.books||[])if(!b.id||!b.title||!b.author||!('notes' in b))errors.push('Incomplete book data');

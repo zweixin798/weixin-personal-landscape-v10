@@ -11,8 +11,12 @@
   const controls=document.createElement('nav');controls.className='scene-controls';controls.setAttribute('aria-label','分屏导航');
   controls.innerHTML='<span class="scene-instruction">滑动，进入下一幕</span><span class="scene-status" aria-live="polite" aria-atomic="true"></span><div><button class="previous-scene" aria-label="上一幕">↑</button><button class="next-scene" aria-label="下一幕">↓</button></div>';
   document.body.append(controls);
+  const heroIntro=document.createElement('div');
+  heroIntro.className='hero-intro';heroIntro.setAttribute('aria-hidden','true');
+  heroIntro.innerHTML='<div class="hero-intro-inner"><span class="intro-name">Weixin Zhang</span><span class="intro-motto"><i style="--i:0">Technical by practice.</i><i style="--i:1">Product by craft.</i><i style="--i:2">Business by outcome.</i></span></div>';
+  main.append(heroIntro);
   const previous=controls.querySelector('.previous-scene');const next=controls.querySelector('.next-scene');
-  let roomArrivalTimer;
+  let roomArrivalTimer,heroIntroTimer,introPlaying=false;
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   let current=0,lockedUntil=0,gestureLast=0,gestureSum=0,gestureUsed=false,readingGesture=false,touch=null;
   const findScene=hash=>{const target=document.getElementById(hash.replace(/^#/,''));return scenes.findIndex(scene=>scene===target||scene.contains(target));};
@@ -30,7 +34,7 @@
       scene.classList.toggle('is-current',i===current);scene.inert=i!==current;scene.setAttribute('aria-hidden',String(i!==current));
       if(i===current){scene.querySelectorAll('.visual-reveal').forEach(el=>el.classList.add('is-visible'));}
     });
-    if(old!==index){scenes[index].querySelector('.scene-scroll').scrollTop=0;lockedUntil=performance.now()+(motion.matches?120:roomArrival?900:650);}
+    if(old!==index){scenes[index].querySelector('.scene-scroll').scrollTop=0;lockedUntil=performance.now()+(motion.matches?120:roomArrival?900:450);}
     const target=anchor?document.getElementById(anchor.replace(/^#/,'')):null;
     const nested=target&&target!==scenes[index]&&scenes[index].contains(target);
     if(nested){const scroll=scenes[index].querySelector('.scene-scroll');scroll.scrollTo({top:target.getBoundingClientRect().top-scroll.getBoundingClientRect().top+scroll.scrollTop-24,behavior:old===index&&animate&&!motion.matches?'smooth':'instant'});}
@@ -49,32 +53,34 @@
   previous.addEventListener('click',()=>go(current-1,{focus:true}));next.addEventListener('click',()=>go(current+1,{focus:true}));
   document.addEventListener('click',event=>{
     const link=event.target.closest('a[href^="#"]');if(!link)return;
+    if(introPlaying){event.preventDefault();return;}
     const hash=link.getAttribute('href');const index=hash==='#main'?current:findScene(hash);
     if(index<0)return;event.preventDefault();go(index,{focus:true,anchor:hash});
   });
   addEventListener('popstate',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true,anchor:location.hash});});
   addEventListener('hashchange',()=>{const i=findScene(location.hash);if(i>=0)go(i,{historyMode:'none',focus:true,anchor:location.hash});});
   main.addEventListener('wheel',event=>{
+    if(introPlaying){event.preventDefault();return;}
     if(event.ctrlKey||modalOpen()||isInteractive(event.target)||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
-    const now=performance.now();if(now-gestureLast>180){gestureUsed=false;readingGesture=false;gestureSum=0;}gestureLast=now;
+    const now=performance.now();if(now-gestureLast>300){gestureUsed=false;readingGesture=false;gestureSum=0;}gestureLast=now;
     const direction=Math.sign(event.deltaY);if(!direction)return;
     if(gestureUsed||now<lockedUntil){event.preventDefault();return;}
     if(canScroll(direction)){gestureSum=0;readingGesture=true;return;}
-    if(readingGesture){event.preventDefault();return;}
-    // A new wheel gesture is required after reaching the end of inner content.
     event.preventDefault();const delta=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?innerHeight:1);
     if(Math.sign(gestureSum)!==direction)gestureSum=0;gestureSum+=delta;
-    if(Math.abs(gestureSum)>=45){gestureUsed=true;go(current+direction);}
+    // A firmer push is required right after overflow reading so trailing inertia does not flip the page.
+    if(Math.abs(gestureSum)>=(readingGesture?70:25)){gestureUsed=true;go(current+direction);}
   },{passive:false});
-  main.addEventListener('touchstart',event=>{if(event.touches.length!==1||modalOpen())return;touch={x:event.touches[0].clientX,y:event.touches[0].clientY,top:scrollArea().scrollTop,target:event.target};},{passive:true});
+  main.addEventListener('touchstart',event=>{if(event.touches.length!==1||modalOpen()||introPlaying)return;touch={x:event.touches[0].clientX,y:event.touches[0].clientY,top:scrollArea().scrollTop,target:event.target};},{passive:true});
   main.addEventListener('touchend',event=>{
-    if(!touch||modalOpen())return;const start=touch;touch=null;const t=event.changedTouches[0];if(!t||isInteractive(start.target))return;
-    const dy=start.y-t.clientY,dx=start.x-t.clientX;if(Math.abs(dy)<65||Math.abs(dx)>Math.abs(dy)||performance.now()<lockedUntil)return;
+    if(!touch||modalOpen()||introPlaying)return;const start=touch;touch=null;const t=event.changedTouches[0];if(!t||isInteractive(start.target))return;
+    const dy=start.y-t.clientY,dx=start.x-t.clientX;if(Math.abs(dy)<40||Math.abs(dx)>Math.abs(dy)||performance.now()<lockedUntil)return;
     // A gesture used to read overflow content never also turns the page.
     if(Math.abs(scrollArea().scrollTop-start.top)>4)return;
     if(!canScroll(Math.sign(dy)))go(current+Math.sign(dy));
   },{passive:true});
   document.addEventListener('keydown',event=>{
+    if(introPlaying){if(['ArrowDown','ArrowUp','PageDown','PageUp',' ','Home','End'].includes(event.key))event.preventDefault();return;}
     if(modalOpen()||isInteractive(event.target)||event.altKey||event.ctrlKey||event.metaKey)return;
     if(event.target.closest('button,a,summary')&&[' ','Enter','ArrowUp','ArrowDown'].includes(event.key))return;
     const direction=['ArrowDown','PageDown',' '].includes(event.key)?1:['ArrowUp','PageUp'].includes(event.key)?-1:0;
@@ -83,5 +89,19 @@
     if(canScroll(direction)){scrollArea().scrollBy({top:direction*scrollArea().clientHeight*.75,behavior:motion.matches?'instant':'smooth'});}else go(current+direction,{focus:true});
   });
   document.documentElement.classList.add('scene-mode');
-  go(Math.max(0,findScene(location.hash)),{historyMode:'replace',animate:false,anchor:location.hash});
+  const initialIndex=Math.max(0,findScene(location.hash));
+  go(initialIndex,{historyMode:'replace',animate:false,anchor:location.hash});
+  let introSeen=false;
+  try{introSeen=sessionStorage.getItem('heroIntroPlayed')==='1';}catch(e){}
+  if(initialIndex===0&&!motion.matches&&!introSeen){
+    introPlaying=true;
+    main.classList.add('hero-intro-playing');
+    lockedUntil=performance.now()+2850;
+    heroIntroTimer=setTimeout(()=>{
+      introPlaying=false;
+      main.classList.remove('hero-intro-playing');
+      main.classList.add('hero-intro-done');
+      try{sessionStorage.setItem('heroIntroPlayed','1');}catch(e){}
+    },2850);
+  }
 })();
